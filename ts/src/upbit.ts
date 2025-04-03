@@ -104,6 +104,7 @@ export default class upbit extends Exchange {
             'api': {
                 'public': {
                     'get': {
+                        //  https://docs.upbit.com/kr/docs/user-request-guide
                         'market/all': 3,
                         'candles/{timeframe}': 3,
                         'candles/{timeframe}/{unit}': 3,
