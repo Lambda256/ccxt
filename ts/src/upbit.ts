@@ -40,6 +40,7 @@ export default class upbit extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -1254,6 +1255,125 @@ export default class upbit extends Exchange {
         //     }
         //
         return this.parseOrder (response);
+    }
+
+    /**
+     * @method
+     * @name upbit#editOrder
+     * @see https://docs.upbit.com/kr/reference/%EC%B7%A8%EC%86%8C-%ED%9B%84-%EC%9E%AC%EC%A3%BC%EB%AC%B8
+     * @description cancel the existing order and create a new one with the same symbol and side.
+     * @param {string} id The uuid of the order to cancel
+     * @param {string} symbol symbol of the order; used to calculate the exact cost when type is 'market' and side is 'buy'.
+     * @param {string} type order type to create. Supports 'limit' and 'market'. use params to set 'best' if needed.
+     * @param {string} side order side to create. only buy or sell is accepted.
+     * @param {number} amount amount of the token to trade in the order.
+     * @param {number} price price of the token to trade in the order.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint. if you want to use the 'best' order type, please refer to the documentation above.
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (!id || !type) {
+            throw new ArgumentsRequired (this.id + ' id and type are required in the editOrder()');
+        } else {
+            request['prev_order_uuid'] = id;
+        }
+        let currentType = undefined;
+        const customType = this.safeString (params, 'new_ord_type');
+        params = this.omit (params, 'new_ord_type');
+        if (customType === undefined) {
+            currentType = type;
+        } else {
+            currentType = customType;
+        }
+        if (currentType === 'limit') {
+            if (price === undefined || amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' price and amount are required in the editOrder()');
+            } else {
+                request['new_ord_type'] = 'limit';
+                request['new_price'] = this.priceToPrecision (symbol, price);
+                request['new_volume'] = this.amountToPrecision (symbol, amount);
+            }
+        }
+        if (currentType === 'market') {
+            if (side === 'buy') {
+                request['new_ord_type'] = 'price';
+                if (amount === undefined) {
+                    request['new_price'] = this.priceToPrecision (symbol, price);
+                } else {
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const costRequest = Precise.stringMul (amountString, priceString);
+                    const quoteAmount = this.costToPrecision (symbol, costRequest);
+                    request['new_price'] = quoteAmount;
+                }
+            } else {
+                if (amount === undefined) {
+                    throw new ArgumentsRequired (this.id + ' when using the editOrder() with type market and side sell, amount is required');
+                } else {
+                    request['new_ord_type'] = 'market';
+                    request['new_volume'] = this.amountToPrecision (symbol, amount);
+                }
+            }
+        }
+        if (currentType !== 'market') {
+            const timeInForce = this.safeStringLower (params, 'new_time_in_force');
+            params = this.omit (params, 'new_time_in_force');
+            if (timeInForce !== undefined) {
+                request['new_time_in_force'] = timeInForce;
+            }
+            if (currentType !== 'limit') {
+                request['new_ord_type'] = currentType;
+                if (side === 'buy') {
+                    request['new_price'] = this.priceToPrecision (symbol, price);
+                } else {
+                    request['new_volume'] = this.amountToPrecision (symbol, amount);
+                }
+            }
+        }
+        const response = await this.privatePostOrdersCancelAndNew (this.extend (request, params));
+        //   {
+        //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',
+        //     side: 'bid',
+        //     ord_type: 'limit',
+        //     price: '100000000',
+        //     state: 'wait',
+        //     market: 'KRW-BTC',
+        //     created_at: '2025-04-01T15:30:47+09:00',
+        //     volume: '0.00008',
+        //     remaining_volume: '0.00008',
+        //     reserved_fee: '4',
+        //     remaining_fee: '4',
+        //     paid_fee: '0',
+        //     locked: '8004',
+        //     executed_volume: '0',
+        //     trades_count: '0',
+        //     identifier: '21',
+        //     new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',
+        //     new_order_identifier: '22'
+        //   }
+        const newOrderUuid = this.safeString (response, 'new_order_uuid');
+        const fetchNewOrder = await this.privateGetOrder ({ 'uuid': newOrderUuid });
+        //  {
+        //     uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',
+        //     side: 'bid',
+        //     ord_type: 'best',
+        //     price: '10000',
+        //     state: 'cancel',
+        //     market: 'KRW-BTC',
+        //     created_at: '2025-04-01T15:30:49+09:00',
+        //     reserved_fee: '5',
+        //     remaining_fee: '0.0001025',
+        //     paid_fee: '4.9998975',
+        //     locked: '0.2051025',
+        //     executed_volume: '0.00008097',
+        //     trades_count: '1',
+        //     time_in_force: 'ioc',
+        //     identifier: '22',
+        //     trades: [ [Object] ]
+        //   }
+        return this.parseOrder (fetchNewOrder);
     }
 
     /**
