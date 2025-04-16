@@ -8901,7 +8901,7 @@ class Exchange {
                     httpProxyAgent = this.httpAgent;
                 }
             }
-            url = proxyUrl + url;
+            url = proxyUrl + this.urlEncoderForProxyUrl(url);
         }
         // proxy agents
         const [httpProxy, httpsProxy, socksProxy] = this.checkProxySettings(url, method, headers, body);
@@ -10104,6 +10104,12 @@ class Exchange {
             throw new _errors_js__WEBPACK_IMPORTED_MODULE_3__.InvalidProxySettings(this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return proxyUrl;
+    }
+    urlEncoderForProxyUrl(targetUrl) {
+        // to be overriden
+        const includesQuery = targetUrl.indexOf('?') >= 0;
+        const finalUrl = includesQuery ? this.encodeURIComponent(targetUrl) : targetUrl;
+        return finalUrl;
     }
     checkProxySettings(url = undefined, method = undefined, headers = undefined, body = undefined) {
         const usedProxies = [];
@@ -22602,195 +22608,8 @@ class binance extends _abstract_binance_js__WEBPACK_IMPORTED_MODULE_0__/* ["defa
                     'SPL': 'SOL',
                     'SOL': 'SOL', // we shouldn't rename SOL
                 },
-                // keeping this object for backward-compatibility
-                'reverseNetworks': {
-                    'tronscan.org': 'TRC20',
-                    'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
-                    'explorer.binance.org': 'BEP2',
-                    'bithomp.com': 'XRP',
-                    'bloks.io': 'EOS',
-                    'stellar.expert': 'XLM',
-                    'blockchair.com/bitcoin': 'BTC',
-                    'blockchair.com/bitcoin-cash': 'BCH',
-                    'blockchair.com/ecash': 'XEC',
-                    'explorer.litecoin.net': 'LTC',
-                    'explorer.avax.network': 'AVAX',
-                    'solscan.io': 'SOL',
-                    'polkadot.subscan.io': 'DOT',
-                    'dashboard.internetcomputer.org': 'ICP',
-                    'explorer.chiliz.com': 'CHZ',
-                    'cardanoscan.io': 'ADA',
-                    'mainnet.theoan.com': 'AION',
-                    'algoexplorer.io': 'ALGO',
-                    'explorer.ambrosus.com': 'AMB',
-                    'viewblock.io/zilliqa': 'ZIL',
-                    'viewblock.io/arweave': 'AR',
-                    'explorer.ark.io': 'ARK',
-                    'atomscan.com': 'ATOM',
-                    'www.mintscan.io': 'CTK',
-                    'explorer.bitcoindiamond.org': 'BCD',
-                    'btgexplorer.com': 'BTG',
-                    'bts.ai': 'BTS',
-                    'explorer.celo.org': 'CELO',
-                    'explorer.nervos.org': 'CKB',
-                    'cerebro.cortexlabs.ai': 'CTXC',
-                    'chainz.cryptoid.info': 'VIA',
-                    'explorer.dcrdata.org': 'DCR',
-                    'digiexplorer.info': 'DGB',
-                    'dock.subscan.io': 'DOCK',
-                    'dogechain.info': 'DOGE',
-                    'explorer.elrond.com': 'EGLD',
-                    'blockscout.com': 'ETC',
-                    'explore-fetchhub.fetch.ai': 'FET',
-                    'filfox.info': 'FIL',
-                    'fio.bloks.io': 'FIO',
-                    'explorer.firo.org': 'FIRO',
-                    'neoscan.io': 'NEO',
-                    'ftmscan.com': 'FTM',
-                    'explorer.gochain.io': 'GO',
-                    'block.gxb.io': 'GXS',
-                    'hash-hash.info': 'HBAR',
-                    'www.hiveblockexplorer.com': 'HIVE',
-                    'explorer.helium.com': 'HNT',
-                    'tracker.icon.foundation': 'ICX',
-                    'www.iostabc.com': 'IOST',
-                    'explorer.iota.org': 'IOTA',
-                    'iotexscan.io': 'IOTX',
-                    'irishub.iobscan.io': 'IRIS',
-                    'kava.mintscan.io': 'KAVA',
-                    'scope.klaytn.com': 'KLAY',
-                    'kmdexplorer.io': 'KMD',
-                    'kusama.subscan.io': 'KSM',
-                    'explorer.lto.network': 'LTO',
-                    'polygonscan.com': 'POLYGON',
-                    'explorer.ont.io': 'ONT',
-                    'minaexplorer.com': 'MINA',
-                    'nanolooker.com': 'NANO',
-                    'explorer.nebulas.io': 'NAS',
-                    'explorer.nbs.plus': 'NBS',
-                    'explorer.nebl.io': 'NEBL',
-                    'nulscan.io': 'NULS',
-                    'nxscan.com': 'NXS',
-                    'explorer.harmony.one': 'ONE',
-                    'explorer.poa.network': 'POA',
-                    'qtum.info': 'QTUM',
-                    'explorer.rsk.co': 'RSK',
-                    'www.oasisscan.com': 'ROSE',
-                    'ravencoin.network': 'RVN',
-                    'sc.tokenview.com': 'SC',
-                    'secretnodes.com': 'SCRT',
-                    'explorer.skycoin.com': 'SKY',
-                    'steemscan.com': 'STEEM',
-                    'explorer.stacks.co': 'STX',
-                    'www.thetascan.io': 'THETA',
-                    'scan.tomochain.com': 'TOMO',
-                    'explore.vechain.org': 'VET',
-                    'explorer.vite.net': 'VITE',
-                    'www.wanscan.org': 'WAN',
-                    'wavesexplorer.com': 'WAVES',
-                    'wax.eosx.io': 'WAXP',
-                    'waltonchain.pro': 'WTC',
-                    'chain.nem.ninja': 'XEM',
-                    'verge-blockchain.info': 'XVG',
-                    'explorer.yoyow.org': 'YOYOW',
-                    'explorer.zcha.in': 'ZEC',
-                    'explorer.zensystem.io': 'ZEN',
-                },
                 'networksById': {
-                    'SOL': 'SOL',
-                    'tronscan.org': 'TRC20',
-                    'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
-                    'explorer.binance.org': 'BEP2',
-                    'bithomp.com': 'XRP',
-                    'bloks.io': 'EOS',
-                    'stellar.expert': 'XLM',
-                    'blockchair.com/bitcoin': 'BTC',
-                    'blockchair.com/bitcoin-cash': 'BCH',
-                    'blockchair.com/ecash': 'XEC',
-                    'explorer.litecoin.net': 'LTC',
-                    'explorer.avax.network': 'AVAX',
-                    'solscan.io': 'SOL',
-                    'polkadot.subscan.io': 'DOT',
-                    'dashboard.internetcomputer.org': 'ICP',
-                    'explorer.chiliz.com': 'CHZ',
-                    'cardanoscan.io': 'ADA',
-                    'mainnet.theoan.com': 'AION',
-                    'algoexplorer.io': 'ALGO',
-                    'explorer.ambrosus.com': 'AMB',
-                    'viewblock.io/zilliqa': 'ZIL',
-                    'viewblock.io/arweave': 'AR',
-                    'explorer.ark.io': 'ARK',
-                    'atomscan.com': 'ATOM',
-                    'www.mintscan.io': 'CTK',
-                    'explorer.bitcoindiamond.org': 'BCD',
-                    'btgexplorer.com': 'BTG',
-                    'bts.ai': 'BTS',
-                    'explorer.celo.org': 'CELO',
-                    'explorer.nervos.org': 'CKB',
-                    'cerebro.cortexlabs.ai': 'CTXC',
-                    'chainz.cryptoid.info': 'VIA',
-                    'explorer.dcrdata.org': 'DCR',
-                    'digiexplorer.info': 'DGB',
-                    'dock.subscan.io': 'DOCK',
-                    'dogechain.info': 'DOGE',
-                    'explorer.elrond.com': 'EGLD',
-                    'blockscout.com': 'ETC',
-                    'explore-fetchhub.fetch.ai': 'FET',
-                    'filfox.info': 'FIL',
-                    'fio.bloks.io': 'FIO',
-                    'explorer.firo.org': 'FIRO',
-                    'neoscan.io': 'NEO',
-                    'ftmscan.com': 'FTM',
-                    'explorer.gochain.io': 'GO',
-                    'block.gxb.io': 'GXS',
-                    'hash-hash.info': 'HBAR',
-                    'www.hiveblockexplorer.com': 'HIVE',
-                    'explorer.helium.com': 'HNT',
-                    'tracker.icon.foundation': 'ICX',
-                    'www.iostabc.com': 'IOST',
-                    'explorer.iota.org': 'IOTA',
-                    'iotexscan.io': 'IOTX',
-                    'irishub.iobscan.io': 'IRIS',
-                    'kava.mintscan.io': 'KAVA',
-                    'scope.klaytn.com': 'KLAY',
-                    'kmdexplorer.io': 'KMD',
-                    'kusama.subscan.io': 'KSM',
-                    'explorer.lto.network': 'LTO',
-                    'polygonscan.com': 'POLYGON',
-                    'explorer.ont.io': 'ONT',
-                    'minaexplorer.com': 'MINA',
-                    'nanolooker.com': 'NANO',
-                    'explorer.nebulas.io': 'NAS',
-                    'explorer.nbs.plus': 'NBS',
-                    'explorer.nebl.io': 'NEBL',
-                    'nulscan.io': 'NULS',
-                    'nxscan.com': 'NXS',
-                    'explorer.harmony.one': 'ONE',
-                    'explorer.poa.network': 'POA',
-                    'qtum.info': 'QTUM',
-                    'explorer.rsk.co': 'RSK',
-                    'www.oasisscan.com': 'ROSE',
-                    'ravencoin.network': 'RVN',
-                    'sc.tokenview.com': 'SC',
-                    'secretnodes.com': 'SCRT',
-                    'explorer.skycoin.com': 'SKY',
-                    'steemscan.com': 'STEEM',
-                    'explorer.stacks.co': 'STX',
-                    'www.thetascan.io': 'THETA',
-                    'scan.tomochain.com': 'TOMO',
-                    'explore.vechain.org': 'VET',
-                    'explorer.vite.net': 'VITE',
-                    'www.wanscan.org': 'WAN',
-                    'wavesexplorer.com': 'WAVES',
-                    'wax.eosx.io': 'WAXP',
-                    'waltonchain.pro': 'WTC',
-                    'chain.nem.ninja': 'XEM',
-                    'verge-blockchain.info': 'XVG',
-                    'explorer.yoyow.org': 'YOYOW',
-                    'explorer.zcha.in': 'ZEC',
-                    'explorer.zensystem.io': 'ZEN',
+                    'SOL': 'SOL', // temporary fix for SPL definition
                 },
                 'impliedNetworks': {
                     'ETH': { 'ERC20': 'ETH' },
@@ -30530,43 +30349,19 @@ class binance extends _abstract_binance_js__WEBPACK_IMPORTED_MODULE_0__/* ["defa
     parseDepositAddress(response, currency = undefined) {
         //
         //     {
-        //         "currency": "XRP",
+        //         "coin": "XRP",
         //         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
         //         "tag": "108618262",
-        //         "info": {
-        //             "coin": "XRP",
-        //             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
-        //             "tag": "108618262",
-        //             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
-        //         }
+        //         "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
         //     }
         //
-        const info = this.safeDict(response, 'info', {});
-        const url = this.safeString(info, 'url');
+        const url = this.safeString(response, 'url');
         const address = this.safeString(response, 'address');
         const currencyId = this.safeString(response, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
-        let impliedNetwork = undefined;
-        if (url !== undefined) {
-            const reverseNetworks = this.safeDict(this.options, 'reverseNetworks', {});
-            const parts = url.split('/');
-            let topLevel = this.safeString(parts, 2);
-            if ((topLevel === 'blockchair.com') || (topLevel === 'viewblock.io')) {
-                const subLevel = this.safeString(parts, 3);
-                if (subLevel !== undefined) {
-                    topLevel = topLevel + '/' + subLevel;
-                }
-            }
-            impliedNetwork = this.safeString(reverseNetworks, topLevel);
-            const impliedNetworks = this.safeDict(this.options, 'impliedNetworks', {
-                'ETH': { 'ERC20': 'ETH' },
-                'TRX': { 'TRC20': 'TRX' },
-            });
-            if (code in impliedNetworks) {
-                const conversion = this.safeDict(impliedNetworks, code, {});
-                impliedNetwork = this.safeString(conversion, impliedNetwork, impliedNetwork);
-            }
-        }
+        // deposit-address endpoint provides only network url (not network ID/CODE)
+        // so we should map the url to network (their data is inside currencies)
+        const networkCode = this.getNetworkCodeByNetworkUrl(code, url);
         let tag = this.safeString(response, 'tag', '');
         if (tag.length === 0) {
             tag = undefined;
@@ -30575,7 +30370,7 @@ class binance extends _abstract_binance_js__WEBPACK_IMPORTED_MODULE_0__/* ["defa
         return {
             'info': response,
             'currency': code,
-            'network': impliedNetwork,
+            'network': networkCode,
             'address': address,
             'tag': tag,
         };
@@ -33344,6 +33139,41 @@ class binance extends _abstract_binance_js__WEBPACK_IMPORTED_MODULE_0__/* ["defa
             'COMMISSION': 'commission',
         };
         return this.safeString(ledgerType, type, type);
+    }
+    getNetworkCodeByNetworkUrl(currencyCode, depositUrl = undefined) {
+        // depositUrl is like : https://bscscan.com/address/0xEF238AB229342849..
+        if (depositUrl === undefined) {
+            return undefined;
+        }
+        let networkCode = undefined;
+        const currency = this.currency(currencyCode);
+        const networks = this.safeDict(currency, 'networks', {});
+        const networkCodes = Object.keys(networks);
+        for (let i = 0; i < networkCodes.length; i++) {
+            const currentNetworkCode = networkCodes[i];
+            const info = this.safeDict(networks[currentNetworkCode], 'info', {});
+            const siteUrl = this.safeString(info, 'contractAddressUrl');
+            // check if url matches the field's value
+            if (siteUrl !== undefined && depositUrl.startsWith(this.getBaseDomainFromUrl(siteUrl))) {
+                networkCode = currentNetworkCode;
+            }
+        }
+        return networkCode;
+    }
+    getBaseDomainFromUrl(url) {
+        if (url === undefined) {
+            return undefined;
+        }
+        const urlParts = url.split('/');
+        const scheme = this.safeString(urlParts, 0);
+        if (scheme === undefined) {
+            return undefined;
+        }
+        const domain = this.safeString(urlParts, 2);
+        if (domain === undefined) {
+            return undefined;
+        }
+        return scheme + '//' + domain + '/';
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const urls = this.urls;
@@ -54619,7 +54449,7 @@ class bitget extends _abstract_bitget_js__WEBPACK_IMPORTED_MODULE_0__/* ["defaul
             }
         }
         else {
-            request['businessType'] = 'contract';
+            request['businessType'] = 'mix';
         }
         const response = await this.privateCommonGetV2CommonTradeRate(this.extend(request, params));
         //
@@ -72372,20 +72202,32 @@ class bitrue extends _abstract_bitrue_js__WEBPACK_IMPORTED_MODULE_0__/* ["defaul
                 'swap': true,
                 'future': false,
                 'option': false,
+                'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -72396,20 +72238,50 @@ class bitrue extends _abstract_bitrue_js__WEBPACK_IMPORTED_MODULE_0__/* ["defaul
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
+                'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchLeverages': false,
+                'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -72420,9 +72292,15 @@ class bitrue extends _abstract_bitrue_js__WEBPACK_IMPORTED_MODULE_0__/* ["defaul
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': true,
                 'setMargin': true,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -120793,6 +120671,9 @@ class coinex extends _abstract_coinex_js__WEBPACK_IMPORTED_MODULE_0__/* ["defaul
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
+                if (networkId === undefined) {
+                    continue;
+                }
                 const precisionString = this.parsePrecision(this.safeString(chain, 'withdrawal_precision'));
                 const feeString = this.safeString(chain, 'withdrawal_fee');
                 const minNetworkDepositString = this.safeString(chain, 'min_deposit_amount');
@@ -126211,7 +126092,7 @@ class coinlist extends _abstract_coinlist_js__WEBPACK_IMPORTED_MODULE_0__/* ["de
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
@@ -128606,6 +128487,90 @@ class coinlist extends _abstract_coinlist_js__WEBPACK_IMPORTED_MODULE_0__/* ["de
             'withdrawal': 'transfer',
         };
         return this.safeString(types, type, type);
+    }
+    /**
+     * @method
+     * @name coinlist#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://trade-docs.coinlist.co/#coinlist-pro-api-Funding-Rates
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new _base_errors_js__WEBPACK_IMPORTED_MODULE_2__.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV1SymbolsSymbolFunding(this.extend(request, params));
+        //
+        //     {
+        //         "last": {
+        //             "funding_rate": "-0.00043841",
+        //             "funding_time": "2025-04-15T04:00:00.000Z"
+        //         },
+        //         "next": {
+        //             "funding_rate": "-0.00046952",
+        //             "funding_time": "2025-04-15T12:00:00.000Z"
+        //         },
+        //         "indicative": {
+        //             "funding_rate": "-0.00042517",
+        //             "funding_time": "2025-04-15T20:00:00.000Z"
+        //         },
+        //         "timestamp": "2025-04-15T07:01:15.219Z"
+        //     }
+        //
+        return this.parseFundingRate(response, market);
+    }
+    parseFundingRate(contract, market = undefined) {
+        //
+        //     {
+        //         "last": {
+        //             "funding_rate": "-0.00043841",
+        //             "funding_time": "2025-04-15T04:00:00.000Z"
+        //         },
+        //         "next": {
+        //             "funding_rate": "-0.00046952",
+        //             "funding_time": "2025-04-15T12:00:00.000Z"
+        //         },
+        //         "indicative": {
+        //             "funding_rate": "-0.00042517",
+        //             "funding_time": "2025-04-15T20:00:00.000Z"
+        //         },
+        //         "timestamp": "2025-04-15T07:01:15.219Z"
+        //     }
+        //
+        const previous = this.safeDict(contract, 'last', {});
+        const current = this.safeDict(contract, 'next', {});
+        const next = this.safeDict(contract, 'indicative', {});
+        const previousDatetime = this.safeString(previous, 'funding_time');
+        const currentDatetime = this.safeString(current, 'funding_time');
+        const nextDatetime = this.safeString(next, 'funding_time');
+        const datetime = this.safeString(contract, 'timestamp');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(undefined, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': this.parse8601(datetime),
+            'datetime': datetime,
+            'fundingRate': this.safeNumber(current, 'funding_rate'),
+            'fundingTimestamp': this.parse8601(currentDatetime),
+            'fundingDatetime': currentDatetime,
+            'nextFundingRate': this.safeNumber(next, 'funding_rate'),
+            'nextFundingTimestamp': this.parse8601(nextDatetime),
+            'nextFundingDatetime': nextDatetime,
+            'previousFundingRate': this.safeNumber(previous, 'funding_rate'),
+            'previousFundingTimestamp': this.parse8601(previousDatetime),
+            'previousFundingDatetime': previousDatetime,
+            'interval': '8h',
+        };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.omit(params, this.extractParams(path));
@@ -312796,7 +312761,7 @@ class hyperliquid extends _hyperliquid_js__WEBPACK_IMPORTED_MODULE_0__/* ["defau
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
+            'order': this.safeString(trade, 'oid'),
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -367557,6 +367522,7 @@ class upbit extends _abstract_upbit_js__WEBPACK_IMPORTED_MODULE_0__/* ["default"
                 'withdraw': true,
             },
             'timeframes': {
+                '1s': 'seconds',
                 '1m': 'minutes',
                 '3m': 'minutes',
                 '5m': 'minutes',
@@ -367568,6 +367534,7 @@ class upbit extends _abstract_upbit_js__WEBPACK_IMPORTED_MODULE_0__/* ["default"
                 '1d': 'days',
                 '1w': 'weeks',
                 '1M': 'months',
+                '1y': 'years',
             },
             'hostname': 'api.upbit.com',
             'urls': {
@@ -399343,7 +399310,7 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const ccxt_version = '4.4.74';
+const ccxt_version = '4.4.75';
 ccxt_src_base_Exchange_js_WEBPACK_IMPORTED_MODULE_0_/* .Exchange */ .k.ccxtVersion = ccxt_version;
 //-----------------------------------------------------------------------------
 
