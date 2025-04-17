@@ -135,6 +135,7 @@ export default class upbit extends Exchange {
                         'accounts',
                         'orders/chance',
                         'order',
+                        'orders',
                         'orders/closed',
                         'orders/open',
                         'orders/uuids',
